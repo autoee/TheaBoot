@@ -65,6 +65,7 @@ TARGETS	= \
 all:	$(TARGETS)
 
 clean:
+	cd libopencm3 && make --no-print-directory clean && cd ..
 	rm -f *.elf *.bin
 
 #---------------------------------------------------------------------------------------------------
@@ -72,5 +73,12 @@ clean:
 #---------------------------------------------------------------------------------------------------
 CGR: $(MAKEFILE_LIST) $(LIBOPENCM3)
 	make -f Makefile.f1 TARGET_HW=CGR LINKER_FILE=stm32f1.ld TARGET_FILE_NAME=$@
+
+#---------------------------------------------------------------------------------------------------
+# libopencm3构建
+#---------------------------------------------------------------------------------------------------
+.PHONY: $(LIBOPENCM3)
+$(LIBOPENCM3): 
+	make -C $(LIBOPENCM3) lib
 
 #********* Copyright (C) 2018 YiQiChuang(ShanXi) Electronic Technology CO,LTD  *****END OF FILE****#
