@@ -73,9 +73,9 @@
 /* Global variable  ------------------------------------------------------------------------------*/
 struct boardinfo board_info =
 {
-	.board_id = DEVICE_ID,
-    .board_rev = DEVICE_REV,
-    .board_sn = DEVICE_SN,
+	.id = DEVICE_ID,
+    .rev = DEVICE_REV,
+    .sn = DEVICE_SN,
     .fw_size = APP_SIZE_MAX,
     .flash_strc = DEVICE_FLASH_STRC,
     .device_des = DEVICE_DES,
@@ -318,7 +318,7 @@ uint32_t flash_func_read_word(uint32_t address)
   * @param  地址
   * @return 序列号值
   */
-uint32_t flash_func_read_sn(uint32_t address)
+uint32_t flash_func_read_udid(uint32_t address)
 {
 	// read a byte out from unique chip ID area
 	// it's 12 bytes, or 3 words.

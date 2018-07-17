@@ -60,12 +60,12 @@ enum Interface_Type
 /* 设备信息 */
 struct boardinfo
 {
-    uint8_t board_id[MAX_DEVICE_ID_LENGTH];
-    uint8_t board_sn[MAX_DEVICE_SN_LENGTH];
-    uint8_t board_rev[MAX_DEVICE_REV_LENGTH];
-	uint32_t fw_size;                          
+    uint8_t id[MAX_DEVICE_ID_LENGTH];
+    uint8_t sn[MAX_DEVICE_SN_LENGTH];
+    uint8_t rev[MAX_DEVICE_REV_LENGTH];
     uint8_t flash_strc[MAX_FLASH_STRC_LENGTH];
     uint8_t device_des[MAX_DEVICE_DES_LENGTH];
+    uint32_t fw_size;
     uint32_t systick_mhz;
 }__attribute__((packed));
 
@@ -99,7 +99,7 @@ extern void flash_func_erase_sector(unsigned page);
 extern void flash_func_write_word(uint32_t address, uint32_t word);
 extern uint32_t flash_func_read_word(uint32_t address);
 extern uint32_t flash_func_read_otp(uint32_t address);
-extern uint32_t flash_func_read_sn(uint32_t address);
+extern uint32_t flash_func_read_udid(uint32_t address);
 extern uint32_t get_mcu_id(void);
 
 /** 

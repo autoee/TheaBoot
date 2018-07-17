@@ -33,12 +33,6 @@
 # POSSIBILITY OF SUCH DAMAGE.                                                                      #
 #--------------------------------------------------------------------------------------------------#
 
-# 默认不输出编译信息，使用 'make V=1' 开启显示
-ifneq ($(V),1)
-Q		:= @
-NULL	:= 2>/dev/null
-endif
-
 #---------------------------------------------------------------------------------------------------
 # openOCD参数
 #---------------------------------------------------------------------------------------------------
@@ -61,11 +55,9 @@ BINARY		= $(TARGET_FILE_NAME).bin
 all:		$(ELF) $(BINARY)
 
 $(ELF):		$(SRCS) $(MAKEFILE_LIST)
-	@printf "  CC      $@\n"
 	$(Q)$(CC) -o $@ $(SRCS) $(FLAGS)
 
 $(BINARY):	$(ELF)
-	@printf "  OBJCOPY $@\n"
 	$(Q)$(OBJCOPY) -O binary $(ELF) $(BINARY)
 
 flash-bootloader:

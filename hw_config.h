@@ -42,8 +42,7 @@
 /***************************************************************************************************
 *  TARGET_HW_CGR                                                                                   *
 ***************************************************************************************************/
-//#ifdef TARGET_HW_CGR
-#if 1 
+#ifdef TARGET_HW_CGR
 
 /* 设备文字信息 */
 #define DEVICE_ID                      "CGR"                              /*!< 设备型号 */
@@ -97,6 +96,7 @@
 #define BOARD_FORCE_BL_CLOCK_BIT       RCC_APB2ENR_IOPBEN
 #define BOARD_FORCE_BL_PULL            GPIO_CNF_INPUT_FLOAT
 #define BOARD_FORCE_BL_STATE           0                   /*!< 触发电平 */
+
 #endif /* CGR-D-032 */
 
 #endif /* HW_CONFIG_H_ */

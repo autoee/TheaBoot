@@ -11,7 +11,7 @@
 * @author   Arthur Zheng                                                                           *
 * @email    15034186698@163.com                                                                    *
 * @version  1.0.0.0                                                                                *
-* @date     2018/04/19                                                                             *
+* @date     2018/07/15                                                                             *
 *                                                                                                  *
 *--------------------------------------------------------------------------------------------------*
 * Remark         :                                                                                 *
@@ -21,7 +21,8 @@
 *--------------------------------------------------------------------------------------------------*
 * unknown    | unknown   | Gareth McMullin| unknown                                                *
 * unknown    | unknown   | David Sidrane  | unknown                                                *
-* 2018/04/19 | 1.0.0.0   | Arthur Zheng   | Restyle the structure of project                       *
+* 2018/07/15 | 1.0.0.0   | Arthur Zheng   | Restyle the structure of project                       *
+* 2018/07/17 | 1.0.0.1   | Arthur Zheng   | Updata USBlib include for lastest libopencm3           *
 *--------------------------------------------------------------------------------------------------*
 * Lisense       : GPLv3                                                                            *
 *                                                                                                  *
@@ -47,7 +48,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/flash.h>
-#include <libopencm3/stm32/otg_fs.h>
+#include <libopencm3/stm32/st_usbfs.h>
 
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>

@@ -55,34 +55,42 @@
 #include "uart.h"
 
 /* Defination ------------------------------------------------------------------------------------*/
-/* 基础参数 */
-#define BL_PROTOCOL_VERSION 		"0.1.0.0"     	/*!< 当前协议版本 */
+/** 
+  * @breif 基础参数 
+  **/
+#define BL_PROTOCOL_VERSION 		"0.1.1.0"     	/*!< 当前协议版本 */
+
 #define PROTO_INSYNC				0x12            /*!< 帧头同步标志 */
-#define PROTO_EOC					0x20            /*!< 帧结束标志 */
+#define PROTO_EOC					0x84            /*!< 帧结束标志 */
 #define PROTO_PROG_MULTI_MAX        256	            /*!< 最大单次烧写数据长度,单位:byte */
 #define PROTO_REPLY_MAX             256	            /*!< 最大返回数据长度,单位:byte */
 
-/* 返回状态 */
+/** 
+  * @breif 返回状态 
+  **/
 #define PROTO_OK					0x10            /*!< 操作成功 */
 #define PROTO_FAILED				0x11            /*!< 操作失败 */
 #define PROTO_INVALID				0x13	        /*!< 指令无效 */
 
-/* 操作指令 */
+/** 
+  * @breif 操作指令 
+  **/
 #define PROTO_GET_SYNC				0x21            /*!< 测试同步 */
 
-#define PROTO_GET_DEVICE_BL_REV     0x22            /*!< 获取Bootloader版本 */
-#define PROTO_GET_DEVICE_BOARD_ID   0x23            /*!< 获取电路板型号,包含版本 */
-#define PROTO_GET_DEVICE_BOARD_SN   0x24            /*!< 获取电路板序列号 */
-#define PROTO_GET_DEVICE_FW_SIZE    0x25            /*!< 获取固件区大小 */
-#define PROTO_GET_DEVICE_FLASH_STRC 0x26            /*!< 获取FLASH结构描述 */
-#define PROTO_GET_DEVICE_TIME_SEQ   0x27            /*!< 获取获取设备指令时序：常规指令、写入时间、擦除时间、CRC计算时间、引导时间 */
-#define PROTO_GET_DEVICE_DES        0x28            /*!< 获取以 ASCII 格式读取设备描述 */
+#define PROTO_GET_UDID				0x31            /*!< 读取芯片指定地址上的 UDID 12字节的值 */
+#define PROTO_GET_FW_SIZE           0x32            /*!< 获取固件区大小 */
 
-#define PROTO_CHIP_ERASE			0x30            /*!< 擦除设备 Flash 并复位编程指针 */
-#define PROTO_PROG_MULTI			0x31            /*!< 在当前编程指针位置写入指定字节的数据，并使编程指针向后移动到下一段的位置 */
-#define PROTO_GET_CRC				0x32	        /*!< 计算并返回CRC校验值 */
-#define PROTO_GET_SN				0x33            /*!< 读取芯片指定地址上的 UDID 12字节的值 */
-#define PROTO_BOOT					0x34            /*!< 引导 APP 程序 */
+#define PROTO_GET_BL_REV            0x41            /*!< 获取Bootloader版本 */
+#define PROTO_GET_ID                0x42            /*!< 获取电路板型号,包含版本 */
+#define PROTO_GET_SN                0x43            /*!< 获取电路板序列号 */
+#define PROTO_GET_REV               0x44            /*!< 获取电路板版本 */
+#define PROTO_GET_FLASH_STRC        0x45            /*!< 获取FLASH结构描述 */
+#define PROTO_GET_DES               0x46            /*!< 获取以 ASCII 格式读取设备描述 */
+
+#define PROTO_CHIP_ERASE			0x51            /*!< 擦除设备 Flash 并复位编程指针 */
+#define PROTO_PROG_MULTI			0x52            /*!< 在当前编程指针位置写入指定字节的数据，并使编程指针向后移动到下一段的位置 */
+#define PROTO_GET_CRC				0x53	        /*!< 计算并返回CRC校验值 */
+#define PROTO_BOOT					0x54            /*!< 引导 APP 程序 */
 
 /* Private variable  -----------------------------------------------------------------------------*/
 static uint8_t bl_type;
@@ -440,7 +448,7 @@ static void cout_word(uint32_t val)
   * @param[in]  timeout,超时时间
   * @return     1,失败.其他,接收到的数据
   */
-static int cin_word(uint32_t *wp, unsigned timeout)
+static int __attribute__((unused)) cin_word(uint32_t *wp, unsigned timeout)
 {
     union {
         uint32_t w;
@@ -571,74 +579,100 @@ void bootloader(unsigned timeout)
 
             break;
 
-        // // 获取设备信息
-        // case PROTO_GET_DEVICE:
+        // 读取芯片序列号
+        case PROTO_GET_UDID:
+        {
+            uint32_t udid[3] = {0};
+            char tmp[24] = {0};
+            uint8_t i;
 
-        //     arg = cin_wait(1000); // 读取命令参数
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
 
-        //     if (arg < 0)
-        //     {
-        //         goto cmd_bad;
-        //     }
+            udid[0] = flash_func_read_udid(0);
+            udid[1] = flash_func_read_udid(1);
+            udid[2] = flash_func_read_udid(2);
 
-        //     if (!wait_for_eoc(2))
-        //     {
-        //         goto cmd_bad;
-        //     }
+            for (i = 0; i < 24; i++)
+            {
+                tmp[i] = hex_to_char((udid[i / 8] >> (4 * (i % 12))) & 0x0f);
+            }
 
-        //     switch (arg)
-        //     {
-        //     case PROTO_DEVICE_BL_REV:
-        //     {
-        //         uint8_t len = sizeof(bl_proto_rev);
-        //         cout((uint8_t *)&len, 1);
-        //         cout((uint8_t *)&bl_proto_rev, len);
-        //     }
-        //     break;
+            cout((uint8_t *)tmp, 24);
+        }
+        break;
 
-        //     case PROTO_DEVICE_BOARD_ID:
-        //     {
-        //         uint8_t len = sizeof(board_info.board_id);
-        //         cout((uint8_t *)&len, 1);
-        //         cout((uint8_t *)&board_info.board_id, len);
-        //     }
-        //     break;
+        // 获取设备固件区大小
+        case PROTO_GET_FW_SIZE:
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
 
-        //     case PROTO_DEVICE_BOARD_SN:
-        //     {
-        //         uint8_t len = sizeof(board_info.board_sn);
-        //         cout((uint8_t *)&len, 1);
-        //         cout((uint8_t *)&board_info.board_sn, len);
-        //     }
-        //     break;
+            cout((uint8_t *)&board_info.fw_size, sizeof(board_info.fw_size));
+            break; 
 
-        //     case PROTO_DEVICE_FW_SIZE:
-        //     {
-        //         cout((uint8_t *)&board_info.fw_size, sizeof(board_info.fw_size));
-        //     }
-        //     break;
+        // 获取Bootloader版本    
+        case PROTO_GET_BL_REV:
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
 
-        //     case PROTO_DEVICE_FLASH_STRC:
-        //     {
-        //         uint8_t len = sizeof(board_info.flash_strc);
-        //         cout((uint8_t *)&len, 1);
-        //         cout((uint8_t *)&board_info.flash_strc, len);
-        //     }
-        //     break;
+            cout((uint8_t *)&bl_proto_rev, sizeof(bl_proto_rev));
+            break;
 
-        //     case PROTO_DEVICE_TIME_SEQ:
-        //     {
-        //         uint8_t len = sizeof(board_info.flash_strc);
-        //         cout((uint8_t *)&len, 1);
-        //         cout((uint8_t *)&board_info.flash_strc, len);
-        //     }
-        //     break;
+        // 获取设备ID
+        case PROTO_GET_ID:
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
 
-        //     default:
-        //         goto cmd_bad;
-        //     }
+            cout((uint8_t *)&board_info.id, sizeof(board_info.id));
+            break;
 
-        //     break;
+        // 获取设备序列号
+        case PROTO_GET_SN:
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
+
+            cout((uint8_t *)&board_info.sn, sizeof(board_info.sn)); 
+            break;
+
+        // 获取设备版本
+        case PROTO_GET_REV:
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
+
+            cout((uint8_t *)&board_info.rev, sizeof(board_info.rev)); 
+            break; 
+
+        // 获取设备FLASH结构描述
+        case PROTO_GET_FLASH_STRC:
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
+
+            cout((uint8_t *)&board_info.flash_strc, sizeof(board_info.flash_strc));
+            break;  
+
+        // 获取设备描述
+        case PROTO_GET_DES:
+            if (!wait_for_eoc(2))
+            {
+                goto cmd_bad;
+            }
+
+            cout((uint8_t *)&board_info.device_des, sizeof(board_info.device_des));
+            break; 
 
         // 擦写固件区
         case PROTO_CHIP_ERASE:
@@ -765,31 +799,6 @@ void bootloader(unsigned timeout)
             }
 
             cout_word(sum);
-        }
-        break;
-
-        // 读取芯片序列号
-        case PROTO_GET_SN:
-        {
-            uint32_t sn[3] = {0};
-            char tmp[24] = {0};
-            uint8_t i;
-
-            if (!wait_for_eoc(2))
-            {
-                goto cmd_bad;
-            }
-
-            sn[0] = flash_func_read_sn(0);
-            sn[1] = flash_func_read_sn(1);
-            sn[2] = flash_func_read_sn(2);
-
-            for (i = 0; i < 24; i++)
-            {
-                tmp[i] = hex_to_char((sn[i / 8] >> (4 * (i % 12))) & 0x0f);
-            }
-
-            cout((uint8_t *)tmp, 24);
         }
         break;
 

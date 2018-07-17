@@ -49,10 +49,10 @@ export OBJCOPY		= arm-none-eabi-objcopy
 #---------------------------------------------------------------------------------------------------
 # 公共配置
 #---------------------------------------------------------------------------------------------------
-export FLAGS		= -std=gnu99 -Os -g -Wundef -Wall -fno-builtin\
+export FLAGS		= -std=gnu99 -Os -g -Wundef -Wall -fno-builtin -fgnu89-inline\
                       -I$(LIBOPENCM3)/include -ffunction-sections -nostartfiles\
                       -lnosys -Wl,-gc-sections -Wl,-g \
-					  #-Werror
+					  -Werror
 
 export COMMON_SRCS	= bl.c cdcacm.c usart.c
 
