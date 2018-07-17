@@ -10,6 +10,7 @@ build:
     stage: build
     script:
       - cd libopencm3
+      - make clean
       - make
       - cd ..
       - make clean
