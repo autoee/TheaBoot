@@ -60,7 +60,8 @@ export COMMON_SRCS	= bl.c cdcacm.c usart.c
 # 构建对象
 #---------------------------------------------------------------------------------------------------
 TARGETS	= \
-		CGR
+		STM32F103_WARSHIP_V2_0
+
 
 all:	$(TARGETS)
 
@@ -71,8 +72,8 @@ clean:
 #---------------------------------------------------------------------------------------------------
 # 对象构建指令
 #---------------------------------------------------------------------------------------------------
-CGR: $(MAKEFILE_LIST) $(LIBOPENCM3)
-	make -f Makefile.f1 TARGET_HW=CGR LINKER_FILE=stm32f1.ld TARGET_FILE_NAME=$@
+STM32F103_WARSHIP_V2_0: $(MAKEFILE_LIST) $(LIBOPENCM3)
+	make -f Makefile.f1 TARGET_HW=STM32F103_WARSHIP_V2_0 LINKER_FILE=stm32f1.ld TARGET_FILE_NAME=$@
 
 #---------------------------------------------------------------------------------------------------
 # libopencm3构建

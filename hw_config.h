@@ -40,16 +40,20 @@
 #define HW_CONFIG_H_
 
 /***************************************************************************************************
-*  TARGET_HW_CGR                                                                                   *
+*  TARGET_HW_STM32F103_Atom_Warship_V2_0                                                                                   *
 ***************************************************************************************************/
-#ifdef TARGET_HW_CGR
+#ifdef TARGET_HW_STM32F103_WARSHIP_V2_0
 
 /* 设备文字信息 */
-#define DEVICE_ID                      "CGR"                              /*!< 设备型号 */
-#define DEVICE_REV                     "3.0"                              /*!< 设备版本 */
-#define DEVICE_SN                      "9ax1fde1vna1cn15"                 /*!< 设备序列号 */
-#define DEVICE_FLASH_STRC              "@internal 0x08000000 12x64a"      /*!< 设备内存结构描述 */
-#define DEVICE_DES                     "单片机:GD32F103C8T6 设计电流:2Amax"   /*!< 设备描述 */                
+#define DEVICE_ID                      "ALIENTEK战舰STM32"                    /*!< 设备型号 */
+#define DEVICE_REV                     "2.0"                                  /*!< 设备版本 */
+#define DEVICE_SN                      "?3DFC40D115E8?174"                      /*!< 设备序列号 */
+#define DEVICE_FLASH_STRC              "@Internal/0x08000000/4*2Ka,252*2Ka"   /*!< 设备内存结构描述 */
+                                                                              /** 
+                                                                               * @note 由于stm32f1没有sector的区分
+                                                                               *       所以这里直接填写page的信息
+                                                                               * */
+#define DEVICE_DES                     "单片机: STM32F103ZET6 原子STM32战舰开发板 V2.0"  /*!< 设备描述 */                
 
 /* 接口使能 */
 #define INTERFACE_USB                  0             /*!< USB接口使能 */
@@ -61,12 +65,12 @@
 #define APP_LOAD_ADDRESS               0x08002000    /*!< APP加载地址 */
 
 /* USB接口配置 */                
-#define USBDEVICESTRING                "CGR V3.0"
+#define USBDEVICESTRING                "STM32 WarShip V2.0"
 #define USBPRODUCTID                   0x0001
-#define USBMFGSTRING                   "YiQiChuang(ShanXi) Electronic Technology CO,LTD"
+#define USBMFGSTRING                   "ALIENTEK"
 
 /* FLASH结构 */
-#define BOARD_FLASH_SECTORS            64            /*!< 共64页,如果没有SECTOR则按照PAGE填写 */
+#define BOARD_FLASH_SECTORS            256            /*!< 共64页,如果没有SECTOR则按照PAGE填写 */
 #define BOARD_FLASH_SIZE               (64 * 2)
 #define FLASH_SECTOR_SIZE              0x400
 
@@ -79,25 +83,29 @@
 #define BOARD_USART_PIN_CLOCK_REGISTER RCC_APB2ENR
 #define BOARD_USART_PIN_CLOCK_BIT      RCC_APB2ENR_IOPAEN
 #define BOARD_USART                    USART1
-#define BOARD_USART_CLOCK_REGISTER     RCC_APB1ENR
-#define BOARD_USART_CLOCK_BIT          RCC_APB1ENR_USART2EN
+#define BOARD_USART_CLOCK_REGISTER     RCC_APB2ENR
+#define BOARD_USART_CLOCK_BIT          RCC_APB2ENR_USART1EN
 
-#define BOARD_PIN_LED_ACTIVITY         GPIO14              /*!< 指示灯接口 */
-#define BOARD_PIN_LED_BOOTLOADER       GPIO15
-#define BOARD_PORT_LEDS                GPIOB
-#define BOARD_CLOCK_LEDS_REGISTER      RCC_APB2ENR
-#define BOARD_CLOCK_LEDS               RCC_APB2ENR_IOPBEN
-#define BOARD_LED_ON                   gpio_clear
-#define BOARD_LED_OFF                  gpio_set
+#define BOARD_PIN_LED_ACTIVITY              GPIO5              /*!< 指示灯接口 */
+#define BOARD_PORT_LED_ACTIVITY             GPIOB
+#define BOARD_CLOCK_LED_ACTIVITY_REGISTER   RCC_APB2ENR
+#define BOARD_CLOCK_LED_ACTIVITY            RCC_APB2ENR_IOPBEN
+#define BOARD_PIN_LED_BOOTLOADER            GPIO5
+#define BOARD_PORT_LED_BOOTLOADER           GPIOE
+#define BOARD_CLOCK_LED_BOOTLOADER_REGISTER RCC_APB2ENR
+#define BOARD_CLOCK_LED_BOOTLOADER          RCC_APB2ENR_IOPEEN
+#define BOARD_LED_ON                        gpio_clear
+#define BOARD_LED_OFF                       gpio_set
 
-#define BOARD_FORCE_BL_PIN             GPIO8               /*!< 强制进入Bootloader引脚接口 */
+#define BOARD_FORCE_BL_PIN             GPIO0               /*!< 强制进入Bootloader引脚接口 */
 #define BOARD_FORCE_BL_PORT            GPIOA
 #define BOARD_FORCE_BL_CLOCK_REGISTER  RCC_APB2ENR
-#define BOARD_FORCE_BL_CLOCK_BIT       RCC_APB2ENR_IOPBEN
-#define BOARD_FORCE_BL_PULL            GPIO_CNF_INPUT_FLOAT
-#define BOARD_FORCE_BL_STATE           0                   /*!< 触发电平 */
+#define BOARD_FORCE_BL_CLOCK_BIT       RCC_APB2ENR_IOPAEN
+#define BOARD_FORCE_BL_MODE            GPIO_CNF_OUTPUT_PUSHPULL
+#define BOARD_FORCE_BL_PULL            0                   /*!< 上下拉 */
+#define BOARD_FORCE_BL_STATE           1                   /*!< 触发电平 */
 
-#endif /* CGR-D-032 */
+#endif /* TARGET_HW_STM32F103_WARSHIP_V2_0 */
 
 #endif /* HW_CONFIG_H_ */
 
