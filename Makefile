@@ -37,8 +37,10 @@
 #---------------------------------------------------------------------------------------------------
 # 路径设定
 #---------------------------------------------------------------------------------------------------
-export BL_BASE		:= $(wildcard .)
-export LIBOPENCM3	:= $(wildcard libopencm3)
+export BUILD_DIR_ROOT ?= build
+export BL_BASE		?= $(wildcard .)
+export LIBOPENCM3	?= $(wildcard libopencm3)
+MKFLAGS=--no-print-directory
 
 #---------------------------------------------------------------------------------------------------
 # 工具链设定
@@ -54,7 +56,8 @@ export FLAGS		= -std=gnu99 -Os -g -Wundef -Wall -fno-builtin -fgnu89-inline\
                       -lnosys -Wl,-gc-sections -Wl,-g \
 					  -Werror
 
-export COMMON_SRCS	= bl.c cdcacm.c usart.c
+export COMMON_SRCS	 = bl.c
+export ARCH_SRCS	 = cdcacm.c  usart.c
 
 #---------------------------------------------------------------------------------------------------
 # 构建对象
@@ -63,17 +66,18 @@ TARGETS	= \
 		STM32F103_WARSHIP_V2_0
 
 
-all:	$(TARGETS)
+all:	$(TARGETS) sizes
 
 clean:
 	cd libopencm3 && make --no-print-directory clean && cd ..
-	rm -f *.elf *.bin
+	rm -f *.elf *.bin *.hex 
+	rm -rf build
 
 #---------------------------------------------------------------------------------------------------
 # 对象构建指令
 #---------------------------------------------------------------------------------------------------
 STM32F103_WARSHIP_V2_0: $(MAKEFILE_LIST) $(LIBOPENCM3)
-	make -f Makefile.f1 TARGET_HW=STM32F103_WARSHIP_V2_0 LINKER_FILE=stm32f1.ld TARGET_FILE_NAME=$@
+	make ${MKFLAGS} -f Makefile.f1 TARGET_HW=STM32F103_WARSHIP_V2_0 LINKER_FILE=stm32f1.ld TARGET_FILE_NAME=$@
 
 #---------------------------------------------------------------------------------------------------
 # libopencm3构建
@@ -81,5 +85,12 @@ STM32F103_WARSHIP_V2_0: $(MAKEFILE_LIST) $(LIBOPENCM3)
 .PHONY: $(LIBOPENCM3)
 $(LIBOPENCM3): 
 	make -C $(LIBOPENCM3) lib
+
+#---------------------------------------------------------------------------------------------------
+# 显示文件大小
+#---------------------------------------------------------------------------------------------------
+.PHONY: sizes
+sizes:
+	@-find build/*/ -name '*.elf' -type f | xargs size 2> /dev/null || :
 
 #********* Copyright (C) 2018 YiQiChuang(ShanXi) Electronic Technology CO,LTD  *****END OF FILE****#

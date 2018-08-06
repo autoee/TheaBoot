@@ -48,7 +48,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/flash.h>
-#include <libopencm3/stm32/st_usbfs.h>
+#include <libopencm3/usb/dwc/otg_fs.h>
 
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
@@ -73,8 +73,7 @@
  *  and is hard coded in the usb lib. The array below is indexed by requested index-1, therefore
  *  element[0] maps to requested index 1
  */
-static const char *usb_strings[] =
-{
+static const char *usb_strings[] = {
 	USBMFGSTRING, /* Maps to Index 1 Index */
 	USBDEVICESTRING,
 	"0",
@@ -86,8 +85,7 @@ static usbd_device *usbd_dev;
 /* Buffer to be used for control requests. */
 static uint8_t usbd_control_buffer[128];
 
-static const struct usb_device_descriptor dev =
-{
+static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,	/**< Specifies he descriptor type */
 	.bcdUSB = 0x0200,					/**< The USB interface version, binary coded (2.0) */
@@ -95,7 +93,7 @@ static const struct usb_device_descriptor dev =
 	.bDeviceSubClass = 0,
 	.bDeviceProtocol = 0,
 	.bMaxPacketSize0 = 64,
-	.idVendor = 0x26AC,					/**< Vendor ID (VID) */
+	.idVendor = 0x26AC,			        /**< Vendor ID (VID) */
 	.idProduct = USBPRODUCTID,			/**< Product ID (PID) */
 	.bcdDevice = 0x0101,				/**< Product version. Set to 1.01 (0x0101) to agree with NuttX */
 	.iManufacturer = 1,					/**< Use string with index 1 for the manufacturer string ("3D Robotics") */
@@ -136,14 +134,12 @@ static const struct usb_endpoint_descriptor data_endp[] = {{
 	}
 };
 
-static const struct
-{
+static const struct {
 	struct usb_cdc_header_descriptor header;
 	struct usb_cdc_call_management_descriptor call_mgmt;
 	struct usb_cdc_acm_descriptor acm;
 	struct usb_cdc_union_descriptor cdc_union;
-} __attribute__((packed)) cdcacm_functional_descriptors =
-{
+} __attribute__((packed)) cdcacm_functional_descriptors = {
 	.header = {
 		.bFunctionLength = sizeof(struct usb_cdc_header_descriptor),
 		.bDescriptorType = CS_INTERFACE,
@@ -215,8 +211,7 @@ static const struct usb_interface ifaces[] = {{
 	}
 };
 
-static const struct usb_config_descriptor config =
-{
+static const struct usb_config_descriptor config = {
 	.bLength = USB_DT_CONFIGURATION_SIZE,
 	.bDescriptorType = USB_DT_CONFIGURATION,
 	.wTotalLength = 0,
@@ -229,45 +224,41 @@ static const struct usb_config_descriptor config =
 	.interface = ifaces,
 };
 
-static const struct usb_cdc_line_coding line_coding =
-{
+static const struct usb_cdc_line_coding line_coding = {
 	.dwDTERate = 115200,
 	.bCharFormat = USB_CDC_1_STOP_BITS,
 	.bParityType = USB_CDC_NO_PARITY,
 	.bDataBits = 0x08
 };
-
-static int cdcacm_control_request(usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf,
-				  uint16_t *len, void (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req))
+static enum usbd_request_return_codes cdcacm_control_request(usbd_device *usbd_dev, struct usb_setup_data *req,
+		uint8_t **buf,
+		uint16_t *len, usbd_control_complete_callback *complete)
 {
 	(void)complete;
 	(void)buf;
 	(void)usbd_dev;
 
-	switch (req->bRequest)
-		{
-		case USB_CDC_REQ_SET_CONTROL_LINE_STATE:
-			{
-				/*
-				 * This Linux cdc_acm driver requires this to be implemented
-				 * even though it's optional in the CDC spec, and we don't
-				 * advertise it in the ACM functional descriptor.
-				 */
-				return 1;
-			}
-
-		case USB_CDC_REQ_SET_LINE_CODING:
-			if (*len < sizeof(struct usb_cdc_line_coding))
-				{
-					return 0;
-				}
-
-			return 1;
-
-		case USB_CDC_REQ_GET_LINE_CODING:
-			*buf = (uint8_t *)&line_coding;
+	switch (req->bRequest) {
+	case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
+			/*
+			 * This Linux cdc_acm driver requires this to be implemented
+			 * even though it's optional in the CDC spec, and we don't
+			 * advertise it in the ACM functional descriptor.
+			 */
 			return 1;
 		}
+
+	case USB_CDC_REQ_SET_LINE_CODING:
+		if (*len < sizeof(struct usb_cdc_line_coding)) {
+			return 0;
+		}
+
+		return 1;
+
+	case USB_CDC_REQ_GET_LINE_CODING:
+		*buf = (uint8_t *)&line_coding;
+		return 1;
+	}
 
 	return 0;
 }
@@ -280,10 +271,9 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 	unsigned i;
 	unsigned len = usbd_ep_read_packet(usbd_dev, 0x01, buf, sizeof(buf));
 
-	for (i = 0; i < len; i++)
-		{
-			buf_put(buf[i]);
-		}
+	for (i = 0; i < len; i++) {
+		buf_put(buf[i]);
+	}
 }
 
 static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
@@ -305,10 +295,9 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
 void
 otg_fs_isr(void)
 {
-	if (usbd_dev)
-		{
-			usbd_poll(usbd_dev);
-		}
+	if (usbd_dev) {
+		usbd_poll(usbd_dev);
+	}
 }
 
 void
@@ -346,8 +335,6 @@ usb_cinit(void)
 
 #elif defined(STM32F1)
 	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN);
-	gpio_set(GPIOA, GPIO8);
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO8);
 
 	usbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config, usb_strings, NUM_USB_STRINGS,
 			     usbd_control_buffer, sizeof(usbd_control_buffer));
@@ -357,15 +344,14 @@ usb_cinit(void)
 
 #if defined(STM32F4)
 
-	if (OTG_FS_CID == OTG_CID_HAS_VBDEN)
-		{
+	if (OTG_FS_CID == OTG_CID_HAS_VBDEN) {
 
-			OTG_FS_GCCFG |= OTG_GCCFG_VBDEN | OTG_GCCFG_PWRDWN;
+		OTG_FS_GCCFG |= OTG_GCCFG_VBDEN | OTG_GCCFG_PWRDWN;
 
-			/* Set the Soft Connect (STMF32446, STMF32469 comes up disconnected) */
+		/* Set the Soft Connect (STMF32446, STMF32469 comes up disconnected) */
 
-			OTG_FS_DCTL &= ~OTG_DCTL_SDIS;
-		}
+		OTG_FS_DCTL &= ~OTG_DCTL_SDIS;
+	}
 
 	nvic_enable_irq(NVIC_OTG_FS_IRQ);
 #endif
@@ -378,11 +364,10 @@ usb_cfini(void)
 	nvic_disable_irq(NVIC_OTG_FS_IRQ);
 #endif
 
-	if (usbd_dev)
-		{
-			usbd_disconnect(usbd_dev, true);
-			usbd_dev = NULL;
-		}
+	if (usbd_dev) {
+		usbd_disconnect(usbd_dev, true);
+		usbd_dev = NULL;
+	}
 
 #if defined(STM32F4)
 	/* Reset the USB pins to being floating inputs */
@@ -393,8 +378,7 @@ usb_cfini(void)
 
 #elif defined(STM32F1)
 	/* Reset the USB pins to being floating inputs */
-	gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, GPIO8);
-	gpio_clear(GPIOA, GPIO8);
+	rcc_peripheral_disable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN);
 #endif
 }
 
@@ -412,19 +396,17 @@ usb_cin(void)
 void
 usb_cout(uint8_t *buf, unsigned count)
 {
-	if (usbd_dev)
-		{
-			while (count)
-				{
-					unsigned len = (count > 64) ? 64 : count;
-					unsigned sent;
+	if (usbd_dev) {
+		while (count) {
+			unsigned len = (count > 64) ? 64 : count;
+			unsigned sent;
 
-					sent = usbd_ep_write_packet(usbd_dev, 0x82, buf, len);
+			sent = usbd_ep_write_packet(usbd_dev, 0x82, buf, len);
 
-					count -= sent;
-					buf += sent;
-				}
+			count -= sent;
+			buf += sent;
 		}
+	}
 }
 #endif
 

@@ -109,6 +109,11 @@ extern inline void cinit(void *config, uint8_t interface);
 extern inline void cfini(void);
 extern inline int cin(void);
 extern inline void cout(uint8_t *buf, unsigned len);
+
+/* generic receive buffer for async reads */
+extern void buf_put(uint8_t b);
+extern int buf_get(void);
+
 #endif
 
 /********* Copyright (C) 2018 YiQiChuang(ShanXi) Electronic Technology CO,LTD  *****END OF FILE****/

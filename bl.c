@@ -20,6 +20,8 @@
 *--------------------------------------------------------------------------------------------------*
 *  2018/04/19 | 0.1.0.0   | Arthur Zheng   | Create file                                           *
 *  2018/07/15 | 0.2.0.0   | Arthur Zheng   | Restyle the structure of project                      *
+*  2018/08/06 | 0.2.0.1   | Arthur Zheng   | 取消last_input机制，以修复两端口同时开启时错误输入数据会*
+*                                            导致的硬件错误                                         *
 *--------------------------------------------------------------------------------------------------*
 * Lisense       : BSD 3-Clause                                                                     *
 *                                                                                                  *
@@ -52,7 +54,7 @@
 
 #include "bl.h"
 #include "cdcacm.h"
-#include "uart.h"
+#include "usart.h"
 
 /* Defination ------------------------------------------------------------------------------------*/
 /** 
@@ -94,10 +96,11 @@
 
 /* Private variable  -----------------------------------------------------------------------------*/
 static uint8_t bl_type;
-static uint8_t last_input;
 static const uint8_t bl_proto_rev[] = BL_PROTOCOL_VERSION; /*!<  */ // value returned by PROTO_DEVICE_BL_REV
 volatile unsigned timer[NTIMERS];
 static enum led_state {LED_BLINK, LED_ON, LED_OFF} _led_state;  /*<! 记录LED状态 */
+static unsigned head, tail;
+static uint8_t rx_buf[256];
 
 /** 
   * @brief  数据接口初始化
@@ -154,7 +157,7 @@ inline int cin(void)
 
         if (usb_in >= 0)
         {
-            last_input = USB;
+            bl_type = USB;
             return usb_in;
         }
     }
@@ -169,7 +172,7 @@ inline int cin(void)
 
         if (uart_in >= 0)
         {
-            last_input = USART;
+            bl_type = USART;
             return uart_in;
         }
     }
@@ -203,6 +206,28 @@ inline void cout(uint8_t *buf, unsigned len)
     }
 
 #endif
+}
+
+void buf_put(uint8_t b)
+{
+	unsigned next = (head + 1) % sizeof(rx_buf);
+
+	if (next != tail) {
+		rx_buf[head] = b;
+		head = next;
+	}
+}
+
+int buf_get(void)
+{
+	int	ret = -1;
+
+	if (tail != head) {
+		ret = rx_buf[tail];
+		tail = (tail + 1) % sizeof(rx_buf);
+	}
+
+	return ret;
 }
 
 /** 
@@ -569,7 +594,6 @@ void bootloader(unsigned timeout)
         // 处理接收到的数据
         switch (c)
         {
-
         // 测试同步
         case PROTO_GET_SYNC:
             if (!wait_for_eoc(2)) // 等待 EOC 结尾
@@ -583,7 +607,7 @@ void bootloader(unsigned timeout)
         case PROTO_GET_UDID:
         {
             uint32_t udid[3] = {0};
-            char tmp[24] = {0};
+            char tmp[12] = {0};
             uint8_t i;
 
             if (!wait_for_eoc(2))
@@ -595,9 +619,9 @@ void bootloader(unsigned timeout)
             udid[1] = flash_func_read_udid(1);
             udid[2] = flash_func_read_udid(2);
 
-            for (i = 0; i < 24; i++)
+            for (i = 0; i < 12; i++)
             {
-                tmp[i] = hex_to_char((udid[i / 8] >> (4 * (i % 12))) & 0x0f);
+                tmp[i] = (udid[i / 4] >> (4 * (i % 4)));
             }
 
             cout((uint8_t *)tmp, 24);
@@ -682,6 +706,8 @@ void bootloader(unsigned timeout)
                 goto cmd_bad;
             }
 
+			led_set(LED_ON);
+
             // 解锁FLASH,擦除整个APP区域
             flash_unlock();
 
@@ -689,6 +715,8 @@ void bootloader(unsigned timeout)
             {
                 flash_func_erase_sector(i);
             }
+
+			led_set(LED_OFF);
 
             // verify the erase
             for (address = 0; address < board_info.fw_size; address += 4)
@@ -698,6 +726,8 @@ void bootloader(unsigned timeout)
                 }
 
             address = 0; // 复位地址
+
+			led_set(LED_BLINK);
 
             break;
 
@@ -831,17 +861,11 @@ void bootloader(unsigned timeout)
             return;
 
         default:
-            continue;
+ 			goto cmd_bad;
         }
 
         // 我们收到一个有效指令，可能已经连接到了升级程序，停止timeout计时
         timeout = 0;
-
-        // 设置 bootloader 接口到最近一次接收的有效指令端口
-        if (bl_type == NONE)
-        {
-            bl_type = last_input;
-        }
 
         // 发送操作成功信号
         sync_response();
@@ -857,24 +881,6 @@ void bootloader(unsigned timeout)
         failure_response();
         continue;
     }
-}
-
-/** 
-  * @brief      数字转字符
-  * @param[in]  bHex,数字
-  * @return     字符
-  */
-unsigned char hex_to_char(uint8_t bHex)
-{
-
-    if ((bHex >= 0) && (bHex <= 9))
-        bHex += 0x30;
-    else if ((bHex >= 10) && (bHex <= 15)) //大写字母
-        bHex += 0x37;
-    else
-        bHex = 0xff;
-
-    return bHex;
 }
 
 /********* Copyright (C) 2018 YiQiChuang(ShanXi) Electronic Technology CO,LTD  *****END OF FILE****/

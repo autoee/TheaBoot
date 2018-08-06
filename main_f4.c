@@ -5,12 +5,12 @@
 *                                                                                                  *
 *  This file is part of TheaBoot project.                                                          *
 *                                                                                                  *
-*  @file     main_f1.c                                                                             *
+*  @file     main_f4.c                                                                             *
 *  @brief                                                                                          *
 *  @author   Arthur Zheng                                                                          *
 *  @email    15034186698@163.com                                                                   *
 *  @version  0.2.0.0                                                                               *
-*  @date     2018/07/15                                                                            *
+*  @date     2018/08/01                                                                            *
 *                                                                                                  *
 *--------------------------------------------------------------------------------------------------*
 *  Remark         :                                                                                *
@@ -19,7 +19,7 @@
 *  <Date>     | <Version> | <Author>       | <Description>                                         *
 *--------------------------------------------------------------------------------------------------*
 *  unknown    | 0.1.0.0   | unknown        | Create file                                           *
-*  2018/07/15 | 0.2.0.0   | Arthur Zheng   | Restyle the structure of project                      *
+*  2018/08/01 | 0.2.0.0   | Arthur Zheng   | Restyle the structure of project                      *
 *--------------------------------------------------------------------------------------------------*
 * Lisense       : BSD 3-Clause                                                                     *
 *                                                                                                  *
@@ -53,7 +53,7 @@
 #include "bl.h"
 
 /* Defination ------------------------------------------------------------------------------------*/
-#define UDID_START      0x1FFFF7E8         /* STM32全球唯一ID地址 */
+#define UDID_START      0x1FFF7A10         /* STM32全球唯一ID地址 */
 
 #ifdef INTERFACE_USART
 # define BOARD_INTERFACE_CONFIG		(void *)BOARD_USART
@@ -93,6 +93,14 @@ static void board_init(void)
 {
     /* 初始化指示灯 */
     rcc_peripheral_enable_clock(&BOARD_CLOCK_LED_ACTIVITY_REGISTER, BOARD_CLOCK_LED_ACTIVITY);
+	gpio_mode_setup(BOARD_PORT_LED_ACTIVITY, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, BOARD_PIN_LED_ACTIVITY);
+	gpio_set_output_options(BOARD_PORT_LED_ACTIVITY, GPIO_OTYPE_PP, GPIO_OSPEED_2MHZ, BOARD_PIN_LED_ACTIVITY);
+
+	
+
+:wq
+
+
 	gpio_set_mode(BOARD_PORT_LED_ACTIVITY, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, BOARD_PIN_LED_ACTIVITY);
 	BOARD_LED_ON(BOARD_PORT_LED_ACTIVITY, BOARD_PIN_LED_ACTIVITY);
 

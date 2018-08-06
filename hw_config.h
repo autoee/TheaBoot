@@ -45,24 +45,24 @@
 #ifdef TARGET_HW_STM32F103_WARSHIP_V2_0
 
 /* 设备文字信息 */
-#define DEVICE_ID                      "ALIENTEK战舰STM32"                    /*!< 设备型号 */
+#define DEVICE_ID                      "ALIENTEK 战舰 STM32"                  /*!< 设备型号 */
 #define DEVICE_REV                     "2.0"                                  /*!< 设备版本 */
-#define DEVICE_SN                      "?3DFC40D115E8?174"                      /*!< 设备序列号 */
-#define DEVICE_FLASH_STRC              "@Internal/0x08000000/4*2Ka,252*2Ka"   /*!< 设备内存结构描述 */
+#define DEVICE_SN                      "3DFC40D115E8174"                      /*!< 设备序列号 */
+#define DEVICE_FLASH_STRC              "@Internal/0x08000000/5*2Ka,255*2Kg"   /*!< 设备内存结构描述 */
                                                                               /** 
                                                                                * @note 由于stm32f1没有sector的区分
                                                                                *       所以这里直接填写page的信息
                                                                                * */
-#define DEVICE_DES                     "单片机: STM32F103ZET6 原子STM32战舰开发板 V2.0"  /*!< 设备描述 */                
+#define DEVICE_DES                     "单片机: STM32F103ZET6\r\n原子STM32战舰开发板 V2.0"  /*!< 设备描述 */                
 
 /* 接口使能 */
-#define INTERFACE_USB                  0             /*!< USB接口使能 */
+#define INTERFACE_USB                  1             /*!< USB接口使能 */
 #define INTERFACE_USART                1             /*!< USART接口使能 */
 
 /* Bootloader参数 */
 #define BOOTLOADER_DELAY               2000          /*!< 引导启动延时 */  
-#define BOOTLOADER_RESERVATION_SIZE    (8 * 1024)    /*!< Bootloader区大小 */
-#define APP_LOAD_ADDRESS               0x08002000    /*!< APP加载地址 */
+#define BOOTLOADER_PAGE                5             /*!< Bootloader区 Page 大小 */
+#define APP_LOAD_ADDRESS               0x08002800    /*!< APP加载地址 */
 
 /* USB接口配置 */                
 #define USBDEVICESTRING                "STM32 WarShip V2.0"
@@ -70,9 +70,8 @@
 #define USBMFGSTRING                   "ALIENTEK"
 
 /* FLASH结构 */
-#define BOARD_FLASH_SECTORS            256            /*!< 共64页,如果没有SECTOR则按照PAGE填写 */
-#define BOARD_FLASH_SIZE               (64 * 2)
-#define FLASH_SECTOR_SIZE              0x400
+#define BOARD_PAGES                    256           /*!< APP所占区域 */
+#define FLASH_PAGE_SIZE                0x800
 
 /* 外设配置 */
 #define OSC_FREQ                       8             /*!< 外部晶振频率 */

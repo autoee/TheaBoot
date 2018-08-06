@@ -46,7 +46,7 @@
 #include <libopencm3/stm32/usart.h>
 
 #include "bl.h"
-#include "uart.h"
+#include "usart.h"
 
 /* Private variable  -----------------------------------------------------------------------------*/
 uint32_t usart;

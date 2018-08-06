@@ -9,8 +9,8 @@
 # Brief   : stm32f1 makefile                                                                       #
 # Author  : Arthur Zheng                                                                           #
 # Email   : 15034186698@163.com                                                                    #
-# Version : 1.0.0.0                                                                                #
-# Date    : 2018/07/15                                                                             #
+# Version : 2.0.0.0                                                                                #
+# Date    : 2018/07/31                                                                             #
 #                                                                                                  #
 #--------------------------------------------------------------------------------------------------#
 # Remark         :                                                                                 #
@@ -19,6 +19,7 @@
 # <Date>     | <Version> | <Author>       | <Description>                                          #
 #--------------------------------------------------------------------------------------------------#
 # 2017/07/15 | 1.0.0.0   | Arthur Zheng   | Create file                                            #
+# 2017/07/31 | 2.0.0.0   | Arthur Zheng   | 根据px4新版修改make规则                                 #
 #--------------------------------------------------------------------------------------------------#
 # Lisense       : BSD 3-Clause                                                                     #
 #                                                                                                  #
@@ -33,34 +34,28 @@
 # POSSIBILITY OF SUCH DAMAGE.                                                                      #
 #--------------------------------------------------------------------------------------------------#
 
+BUILD_DIR	 = $(BUILD_DIR_ROOT)/$(TARGET_FILE_NAME)
+
 #---------------------------------------------------------------------------------------------------
 # openOCD参数
 #---------------------------------------------------------------------------------------------------
 OPENOCD	         := openocd
-OOCD_INTERFACE	 := interface/stlink-v2.cfg
-OOCD_TARGET	     := target/stm32f4x.cfg
+OOCD_INTERFACE	 := interface/jlink.cfg
+OOCD_TARGET	     := target/stm32f1x.cfg
+OOCDFLAGS := -f $(OOCD_INTERFACE) -f $(OOCD_TARGET)
 
-JTAGCONFIG  ?= interface/olimex-jtag-tiny.cfg
-#JTAGCONFIG ?= interface/jtagkey-tiny.cfg
 
-SRCS		 = $(COMMON_SRCS) main_f1.c
+ARCH=stm32
 
-FLAGS		+= -mthumb -mcpu=cortex-m3 -DSTM32F1 -lopencm3_stm32f1 \
-               -T$(LINKER_FILE) -L$(LIBOPENCM3)/lib \
-               -DTARGET_HW_$(TARGET_HW) \
-		   
-ELF		    = $(TARGET_FILE_NAME).elf
-BINARY		= $(TARGET_FILE_NAME).bin
+#SRCS	    = $(COMMON_SRCS) $(addprefix $(ARCH)/,$(ARCH_SRCS)) main_f1.c
+SRCS	    = $(COMMON_SRCS) $(ARCH_SRCS) main_f1.c
 
-all:		$(ELF) $(BINARY)
+FLAGS		+= -mthumb -mcpu=cortex-m3 -DTARGET_HW_$(TARGET_HW) \
+       -DSTM32F1 -T$(LINKER_FILE) -L$(LIBOPENCM3)/lib -lopencm3_stm32f1
 
-$(ELF):		$(SRCS) $(MAKEFILE_LIST)
-	$(Q)$(CC) -o $@ $(SRCS) $(FLAGS)
-
-$(BINARY):	$(ELF)
-	$(Q)$(OBJCOPY) -O binary $(ELF) $(BINARY)
+include rules.mk
 
 flash-bootloader:
-	$(OPENOCD) --search ../px4_bootloader -f $(JTAGCONFIG) -f stm32f1.cfg -c init -c "reset halt" -c "flash write_image erase $(BINARY)" -c "reset run" -c shutdown
+	$(OPENOCD) $(OOCDFLAGS) -c init -c "reset halt" -c "flash write_image erase $(BINARY)" -c "reset run" -c shutdown
 
 #********* Copyright (C) 2018 YiQiChuang(ShanXi) Electronic Technology CO,LTD  *****END OF FILE****#
