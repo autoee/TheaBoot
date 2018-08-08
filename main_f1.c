@@ -102,9 +102,9 @@ static void board_init(void)
     /* 如果强制进入bootloader引脚被定义,初始化该引脚 */
 #ifdef BOARD_FORCE_BL_PIN
 	rcc_peripheral_enable_clock(&BOARD_FORCE_BL_CLOCK_REGISTER, BOARD_FORCE_BL_CLOCK_BIT);
-	gpio_set_mode(BOARD_FORCE_BL_PORT, GPIO_MODE_INPUT, BOARD_FORCE_BL_PULL, BOARD_FORCE_BL_PIN);
+	gpio_set_mode(BOARD_FORCE_BL_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, BOARD_FORCE_BL_PIN);
     
-#if(BOARD_FORCE_BL_PULL == 1)
+#if(BOARD_FORCE_BL_STATE == 0)
 	gpio_set(BOARD_FORCE_BL_PORT, BOARD_FORCE_BL_PIN);
 #else
     gpio_clear(BOARD_FORCE_BL_PORT, BOARD_FORCE_BL_PIN);
@@ -281,10 +281,11 @@ void clock_deinit(void)
   * @brief  读取flash sector大小
   * @param  sector, 块编号
   * @return 0,不存在;!0,sector大小
+  * @note   此处将page当sector处理
   */
 uint32_t flash_func_sector_size(unsigned sector)
 {
-	if (sector < (BOARD_FLASH_PAGES - BOOTLOADER_PAGE))
+	if (sector < BOARD_FLASH_PAGES)
 	{
 		return BOARD_FLASH_PAGE_SIZE;
 	}
@@ -298,9 +299,32 @@ uint32_t flash_func_sector_size(unsigned sector)
   */
 void flash_func_erase_sector(unsigned sector)
 {
-	if (sector < BOARD_FLASH_PAGES)
+	if(sector > BOARD_FLASH_PAGES || sector < BOOTLOADER_PAGE)
 	{
-		flash_erase_page(APP_LOAD_ADDRESS + (sector * BOARD_FLASH_PAGE_SIZE));
+		return;
+	}
+
+	/* 计算sector的实际物理地址
+	 * flash_func_read_word 已经加上了 APP_LOAD_ADDRESS
+	 */
+	uint32_t address = 0;
+
+	address = (sector - BOOTLOADER_PAGE) * BOARD_FLASH_PAGE_SIZE ;
+
+	bool blank = true;
+
+	for (unsigned i = 0; i < BOARD_FLASH_PAGE_SIZE; i += sizeof(uint32_t)) 
+    {
+		if (flash_func_read_word(address + i) != 0xffffffff) 
+        {
+			blank = false;
+			break;
+		}
+	}
+
+	if (!blank) 
+	{
+		flash_erase_page(APP_LOAD_ADDRESS + address);
 	}
 }
 

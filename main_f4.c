@@ -380,7 +380,8 @@ void flash_func_erase_sector(unsigned sector)
 	}
 
 	/* 如果查空失败，则擦除该sector */
-	if (!blank) {
+	if (!blank) 
+	{
 		flash_erase_sector(flash_sectors[sector].sector_number, FLASH_CR_PROGRAM_X32);
 	}
 }

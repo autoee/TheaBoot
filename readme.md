@@ -32,12 +32,12 @@
 ## 支持MCU型号
 
 - [x] STM32F1
-- [ ] STM32F4
+- [x] STM32F4
 
 ## 支持板卡
 
 - [x] ALIENTEK正点原子战舰STM32 V2.0
-- [ ] ALIENTEK正点原子探索者STM32F407
+- [x] ALIENTEK正点原子探索者STM32F407
 
 
 

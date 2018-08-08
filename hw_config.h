@@ -99,8 +99,8 @@
 #define BOARD_FORCE_BL_CLOCK_REGISTER  RCC_APB2ENR
 #define BOARD_FORCE_BL_CLOCK_BIT       RCC_APB2ENR_IOPAEN
 #define BOARD_FORCE_BL_MODE            GPIO_CNF_OUTPUT_PUSHPULL
-#define BOARD_FORCE_BL_PULL            0                   /*!< 上下拉 */
-#define BOARD_FORCE_BL_STATE           1                   /*!< 触发电平 */
+#define BOARD_FORCE_BL_PULL            GPIO_CNF_INPUT_PULL_UPDOWN        /*!< 悬空上下拉 */
+#define BOARD_FORCE_BL_STATE           1                                 /*!< 触发电平 */
 
 #endif /* TARGET_HW_STM32F103_WARSHIP_V2_0 */
 
