@@ -37,7 +37,8 @@
 ## 支持板卡
 
 - [x] ALIENTEK正点原子战舰STM32 V2.0
-- [x] ALIENTEK正点原子探索者STM32F407
+- [ ] ALIENTEK正点原子探索者STM32F407
+- [ ] ST STM32F429I-DISCO
 
 
 
