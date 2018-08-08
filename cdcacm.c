@@ -311,19 +311,32 @@ void usb_cinit(void)
 {
 #if defined(STM32F4)
 
+#if defined(USBPORT_HS)
 	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPBEN);
 	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_OTGHSEN);
 
-	/* Configure USB DP,DM */
 	gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO14 | GPIO15);
 	gpio_set_af(GPIOB, GPIO_AF12, GPIO14 | GPIO15);
+
+#elif defined(USBPORT_FS)
+	rcc_peripheral_enable_clock(&RCC_AHB2ENR, RCC_AHB1ENR_IOPAEN);
+	rcc_peripheral_enable_clock(&RCC_AHB2ENR, RCC_AHB2ENR_OTGFSEN);
+
+	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO11 | GPIO12);
+	gpio_set_af(GPIOA, GPIO_AF10, GPIO11 | GPIO12);
+#endif
 
 #if defined(BOARD_USB_VBUS_SENSE_DISABLED)
 	OTG_FS_GCCFG |= OTG_GCCFG_NOVBUSSENS;
 #endif
 
+#if defined(USBPORT_HS)
 	usbd_dev = usbd_init(&otghs_usb_driver, &dev, &config, usb_strings, NUM_USB_STRINGS,
 			     usbd_control_buffer, sizeof(usbd_control_buffer));
+#elif defined(USBPORT_FS)
+	usbd_dev = usbd_init(&otgfs_usb_driver, &dev, &config, usb_strings, NUM_USB_STRINGS,
+			     usbd_control_buffer, sizeof(usbd_control_buffer));
+#endif
 
 #elif defined(STM32F1)
 	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN);
@@ -345,15 +358,19 @@ void usb_cinit(void)
 		OTG_FS_DCTL &= ~OTG_DCTL_SDIS;
 	}
 
+#if defined(USBPORT_HS)
 	nvic_enable_irq(NVIC_OTG_HS_IRQ);
+#elif defined(USBPORT_FS)
+	nvic_enable_irq(NVIC_OTG_FS_IRQ);
+#endif
+
 #endif
 }
 
-void
-usb_cfini(void)
+void usb_cfini(void)
 {
 #if defined(STM32F4)
-	nvic_disable_irq(NVIC_OTG_FS_IRQ);
+	nvic_disable_irq(NVIC_OTG_HS_IRQ);
 #endif
 
 	if (usbd_dev) {
@@ -374,8 +391,7 @@ usb_cfini(void)
 #endif
 }
 
-int
-usb_cin(void)
+int usb_cin(void)
 {
 	if (usbd_dev == NULL) { return -1; }
 
@@ -385,8 +401,7 @@ usb_cin(void)
 	return buf_get();
 }
 
-void
-usb_cout(uint8_t *buf, unsigned count)
+void usb_cout(uint8_t *buf, unsigned count)
 {
 	if (usbd_dev) {
 		while (count) {

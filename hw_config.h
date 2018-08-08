@@ -130,6 +130,8 @@
 #define USBDEVICESTRING                "STM32F429I-DISCO"
 #define USBPRODUCTID                   0x0001
 #define USBMFGSTRING                   "ST"
+#define USBPORT_HS                     1              /*!< USB接口FS/HS只能开启一个 */
+#define USBPORT_FS                     0      
 
 /* FLASH结构 */
 #define BOARD_FLASH_SECTORS            24
