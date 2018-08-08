@@ -43,7 +43,7 @@
 #define MAX_DEVICE_ID_LENGTH      32
 #define MAX_DEVICE_SN_LENGTH      32
 #define MAX_DEVICE_REV_LENGTH     16
-#define MAX_FLASH_STRC_LENGTH     64
+#define MAX_FLASH_STRC_LENGTH     128
 #define MAX_DEVICE_DES_LENGTH     64
 
 #define LED_ACTIVITY	1
@@ -57,7 +57,7 @@ enum Interface_Type
 	USB
 };
 
-/* Éè±¸ÐÅÏ¢ */
+/* ï¿½è±¸ï¿½ï¿½Ï¢ */
 struct boardinfo
 {
     uint8_t id[MAX_DEVICE_ID_LENGTH];
@@ -77,7 +77,7 @@ extern void delay(unsigned msec);
 extern unsigned char hex_to_char(unsigned char bHex);
 
 /** 
-  * @brief ¼ÆÊ±Æ÷
+  * @brief ï¿½ï¿½Ê±ï¿½ï¿½
   */
 #define NTIMERS       4
 #   define TIMER_BL_WAIT 0
@@ -87,7 +87,7 @@ extern unsigned char hex_to_char(unsigned char bHex);
 extern volatile unsigned timer[NTIMERS]; /* each timer decrements every millisecond if > 0 */
 
 /** 
-  * @brief ´Ó mian.c ÎÄ¼þÖÐµ¼ÈëµÄº¯Êý
+  * @brief ï¿½ï¿½ mian.c ï¿½Ä¼ï¿½ï¿½Ðµï¿½ï¿½ï¿½Äºï¿½ï¿½ï¿½
   */
 extern void led_on(unsigned led);
 extern void led_off(unsigned led);
@@ -103,7 +103,7 @@ extern uint32_t flash_func_read_udid(uint32_t address);
 extern uint32_t get_mcu_id(void);
 
 /** 
-  * @brief Êý¾Ý½Ó¿Úº¯Êý
+  * @brief ï¿½ï¿½ï¿½Ý½Ó¿Úºï¿½ï¿½ï¿½
   */
 extern inline void cinit(void *config, uint8_t interface);
 extern inline void cfini(void);

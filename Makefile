@@ -63,7 +63,8 @@ export ARCH_SRCS	 = cdcacm.c  usart.c
 # 构建对象
 #---------------------------------------------------------------------------------------------------
 TARGETS	= \
-		STM32F103_WARSHIP_V2_0
+		STM32F103_WARSHIP_V2_0 \
+		STM32F429_DISCO
 
 
 all:	$(TARGETS) sizes
@@ -78,6 +79,9 @@ clean:
 #---------------------------------------------------------------------------------------------------
 STM32F103_WARSHIP_V2_0: $(MAKEFILE_LIST) $(LIBOPENCM3)
 	make ${MKFLAGS} -f Makefile.f1 TARGET_HW=STM32F103_WARSHIP_V2_0 LINKER_FILE=stm32f1.ld TARGET_FILE_NAME=$@
+
+STM32F429_DISCO: $(MAKEFILE_LIST) $(LIBOPENCM3)
+	make ${MKFLAGS} -f Makefile.f4 TARGET_HW=STM32F429_DISCO LINKER_FILE=stm32f4.ld TARGET_FILE_NAME=$@
 
 #---------------------------------------------------------------------------------------------------
 # libopencm3构建

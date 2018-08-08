@@ -5,12 +5,12 @@
 #                                                                                                  #
 # This file is part of TheaBoot project.                                                           #
 #                                                                                                  #
-# File    : makeifle.f1                                                                            #
-# Brief   : stm32f1 makefile                                                                       #
+# File    : makeifle.f4                                                                            #
+# Brief   : stm32f4 makefile                                                                       #
 # Author  : Arthur Zheng                                                                           #
 # Email   : 15034186698@163.com                                                                    #
-# Version : 2.0.0.0                                                                                #
-# Date    : 2018/07/31                                                                             #
+# Version : 1.0.0.0                                                                                #
+# Date    : 2018/08/07                                                                             #
 #                                                                                                  #
 #--------------------------------------------------------------------------------------------------#
 # Remark         :                                                                                 #
@@ -18,8 +18,7 @@
 # Change History :                                                                                 #
 # <Date>     | <Version> | <Author>       | <Description>                                          #
 #--------------------------------------------------------------------------------------------------#
-# 2017/07/15 | 1.0.0.0   | Arthur Zheng   | Create file                                            #
-# 2017/07/31 | 2.0.0.0   | Arthur Zheng   | 根据px4新版修改make规则                                 #
+# 2018/08/07   1.0.0.0   | Arthur Zheng   | Create file                                           #
 #--------------------------------------------------------------------------------------------------#
 # Lisense       : BSD 3-Clause                                                                     #
 #                                                                                                  #
@@ -40,18 +39,18 @@ BUILD_DIR	 = $(BUILD_DIR_ROOT)/$(TARGET_FILE_NAME)
 # openOCD参数
 #---------------------------------------------------------------------------------------------------
 OPENOCD	         := openocd
-OOCD_INTERFACE	 := interface/jlink.cfg
-OOCD_TARGET	     := target/stm32f1x.cfg
+OOCD_INTERFACE	 := interface/stlink_v2.cfg
+OOCD_TARGET	     := target/stm32f4x.cfg
 OOCDFLAGS := -f $(OOCD_INTERFACE) -f $(OOCD_TARGET)
 
 
 ARCH=stm32
 
-SRCS	    = $(COMMON_SRCS) $(ARCH_SRCS) main_f1.c
+SRCS	    = $(COMMON_SRCS) $(ARCH_SRCS) main_f4.c
 
-FLAGS		+= -mthumb -mcpu=cortex-m3 -DTARGET_HW_$(TARGET_HW) \
-       -DSTM32F1 -T$(LINKER_FILE) -L$(LIBOPENCM3)/lib -lopencm3_stm32f1
-
+FLAGS		+= -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
+		-DTARGET_HW_$(TARGET_HW) -DSTM32F4 -T$(LINKER_FILE) -L$(LIBOPENCM3)/lib -lopencm3_stm32f4
+       
 include rules.mk
 
 flash-bootloader:

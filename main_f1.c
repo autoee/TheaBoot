@@ -61,9 +61,9 @@
 # define BOARD_INTERFACE_CONFIG		NULL
 #endif
 
-#define  BOARD_FLASH_SIZE             (BOARD_PAGES * FLASH_PAGE_SIZE)
+#define  BOARD_FLASH_SIZE             (BOARD_FLASH_PAGES * BOARD_FLASH_PAGE_SIZE)
 #define  APP_SIZE_MAX                 (BOARD_FLASH_SIZE - BOOTLOADER_RESERVATION_SIZE)
-#define  BOOTLOADER_RESERVATION_SIZE  (BOOTLOADER_PAGE * FLASH_PAGE_SIZE)
+#define  BOOTLOADER_RESERVATION_SIZE  (BOOTLOADER_PAGE * BOARD_FLASH_PAGE_SIZE)
 
 #if INTERFACE_USART
 # define BOARD_INTERFACE_CONFIG_USART	(void *)BOARD_USART
@@ -81,7 +81,7 @@ struct boardinfo board_info =
     .fw_size = APP_SIZE_MAX,
     .flash_strc = DEVICE_FLASH_STRC,
     .device_des = DEVICE_DES,
-	.systick_mhz = OSC_FREQ
+	.systick_mhz = 48,
 };
 
 /** 
@@ -116,7 +116,7 @@ static void board_init(void)
     /* 如果串口开启,初始化串口 */
 #ifdef INTERFACE_USART
 	rcc_peripheral_enable_clock(&BOARD_USART_PIN_CLOCK_REGISTER, BOARD_USART_PIN_CLOCK_BIT);
-	gpio_set_mode(BOARD_PORT_USART,	GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, BOARD_PIN_TX);
+	gpio_set_mode(BOARD_PORT_USART,	GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, BOARD_PIN_TX);  /* 此处只需开启tx即可，rx会自动配置 */
 	rcc_peripheral_enable_clock(&BOARD_USART_CLOCK_REGISTER, BOARD_USART_CLOCK_BIT);
 #endif
 }
@@ -285,9 +285,9 @@ void clock_deinit(void)
   */
 uint32_t flash_func_sector_size(unsigned sector)
 {
-	if (sector < (BOARD_PAGES - BOOTLOADER_PAGE))
+	if (sector < (BOARD_FLASH_PAGES - BOOTLOADER_PAGE))
 	{
-		return FLASH_PAGE_SIZE;
+		return BOARD_FLASH_PAGE_SIZE;
 	}
 	return 0;
 }
@@ -299,9 +299,9 @@ uint32_t flash_func_sector_size(unsigned sector)
   */
 void flash_func_erase_sector(unsigned sector)
 {
-	if (sector < BOARD_PAGES)
+	if (sector < BOARD_FLASH_PAGES)
 	{
-		flash_erase_page(APP_LOAD_ADDRESS + (sector * FLASH_PAGE_SIZE));
+		flash_erase_page(APP_LOAD_ADDRESS + (sector * BOARD_FLASH_PAGE_SIZE));
 	}
 }
 

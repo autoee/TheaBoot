@@ -70,12 +70,10 @@
 #define USBMFGSTRING                   "ALIENTEK"
 
 /* FLASH结构 */
-#define BOARD_PAGES                    256           /*!< APP所占区域 */
-#define FLASH_PAGE_SIZE                0x800
+#define BOARD_FLASH_PAGES              256 
+#define BOARD_FLASH_PAGE_SIZE          0x800
 
 /* 外设配置 */
-#define OSC_FREQ                       8             /*!< 外部晶振频率 */
-
 #define BOARD_PORT_USART               GPIOA               /*!< USART接口 */
 #define BOARD_PIN_TX                   GPIO9
 #define BOARD_PIN_RX                   GPIO10
@@ -105,6 +103,69 @@
 #define BOARD_FORCE_BL_STATE           1                   /*!< 触发电平 */
 
 #endif /* TARGET_HW_STM32F103_WARSHIP_V2_0 */
+
+/***************************************************************************************************
+*  TARGET_HW_STM32F429_DISCO                                                                       *
+***************************************************************************************************/
+#ifdef TARGET_HW_STM32F429_DISCO
+
+/* 设备文字信息 */
+#define DEVICE_ID                      "STM32F429I-DISCO"                  
+#define DEVICE_REV                     "1.0"                                 
+#define DEVICE_SN                      "3DFC40D115E8174"                     
+#define DEVICE_FLASH_STRC              "@Internal/0x08000000/1*16Ka,3*16Kg,1*64Kg,7*128Kg,4*16Kg,1*64Kg,7*128Kg"  
+#define DEVICE_DES                     "单片机: STM32F429ZIT6\r\nST官方评估板"                 
+
+/* 接口使能 */
+#define INTERFACE_USB                  1             
+#define INTERFACE_USART                1            
+
+/* Bootloader参数 */
+#define BOOTLOADER_DELAY               2000  
+#define BOOTLOADER_SECTOR              1
+#define BOOTLOADER_RESERVATION_SIZE    (16 * 1024)             
+#define APP_LOAD_ADDRESS               0x08004000
+
+/* USB接口配置 */                
+#define USBDEVICESTRING                "STM32F429I-DISCO"
+#define USBPRODUCTID                   0x0001
+#define USBMFGSTRING                   "ST"
+
+/* FLASH结构 */
+#define BOARD_FLASH_SECTORS            24
+#define BOARD_FLASH_SIZE               (1024 * 1024 * 2)
+
+/* 外设配置 */
+#define OSC_FREQ                       8             /*!< 外部晶振频率 */
+
+#define BOARD_PORT_USART               GPIOA               /*!< USART接口 */
+#define BOARD_PIN_TX                   GPIO9
+#define BOARD_PIN_RX                   GPIO10
+#define BOARD_USART_PIN_CLOCK_REGISTER RCC_AHB1ENR
+#define BOARD_USART_PIN_CLOCK_BIT      RCC_AHB1ENR_IOPAEN
+#define BOARD_PORT_USART_AF            GPIO_AF7
+#define BOARD_USART                    USART1
+#define BOARD_USART_CLOCK_REGISTER     RCC_APB2ENR
+#define BOARD_USART_CLOCK_BIT          RCC_APB2ENR_USART1EN
+
+#define BOARD_PIN_LED_ACTIVITY              GPIO14              /*!< 指示灯接口 */
+#define BOARD_PORT_LED_ACTIVITY             GPIOG
+#define BOARD_CLOCK_LED_ACTIVITY            RCC_AHB1ENR_IOPGEN
+#define BOARD_PIN_LED_BOOTLOADER            GPIO13
+#define BOARD_PORT_LED_BOOTLOADER           GPIOG
+#define BOARD_CLOCK_LED_BOOTLOADER          RCC_AHB1ENR_IOPGEN
+#define BOARD_LED_ON                        gpio_set
+#define BOARD_LED_OFF                       gpio_clear
+
+#define BOARD_FORCE_BL_PIN             GPIO0               /*!< 强制进入Bootloader引脚接口 */
+#define BOARD_FORCE_BL_PORT            GPIOA
+#define BOARD_FORCE_BL_CLOCK_REGISTER  RCC_AHB1ENR
+#define BOARD_FORCE_BL_CLOCK_BIT       RCC_AHB1ENR_IOPAEN
+#define BOARD_FORCE_BL_MODE            GPIO_PUPD_PULLDOWN
+#define BOARD_FORCE_BL_PULL            0                   /*!< 上下拉 */
+#define BOARD_FORCE_BL_STATE           1                   /*!< 触发电平 */
+
+#endif /* TARGET_HW_STM32F429_DISCO */
 
 #endif /* HW_CONFIG_H_ */
 

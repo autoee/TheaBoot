@@ -61,9 +61,7 @@
 # define BOARD_INTERFACE_CONFIG		NULL
 #endif
 
-#define  BOARD_FLASH_SIZE             (BOARD_PAGES * FLASH_PAGE_SIZE)
-#define  APP_SIZE_MAX                 (BOARD_FLASH_SIZE - BOOTLOADER_RESERVATION_SIZE)
-#define  BOOTLOADER_RESERVATION_SIZE  (BOOTLOADER_PAGE * FLASH_PAGE_SIZE)
+#define APP_SIZE_MAX                 (BOARD_FLASH_SIZE - BOOTLOADER_RESERVATION_SIZE)
 
 #if INTERFACE_USART
 # define BOARD_INTERFACE_CONFIG_USART	(void *)BOARD_USART
@@ -81,7 +79,60 @@ struct boardinfo board_info =
     .fw_size = APP_SIZE_MAX,
     .flash_strc = DEVICE_FLASH_STRC,
     .device_des = DEVICE_DES,
-	.systick_mhz = OSC_FREQ
+	.systick_mhz = 168,
+};
+
+/* Private variable  -----------------------------------------------------------------------------*/
+/* Flash结构 */
+static struct
+ {
+	uint32_t	sector_number;
+	uint32_t	size;
+} flash_sectors[] = 
+{
+    {0x00, 16 * 1024},
+	{0x01, 16 * 1024},
+	{0x02, 16 * 1024},
+	{0x03, 16 * 1024},
+	{0x04, 64 * 1024},
+	{0x05, 128 * 1024},
+	{0x06, 128 * 1024},
+	{0x07, 128 * 1024},
+	{0x08, 128 * 1024},
+	{0x09, 128 * 1024},
+	{0x0a, 128 * 1024},
+	{0x0b, 128 * 1024},
+	/* 2M型号的第二个blank结构 */
+	{0x10, 16 * 1024},
+	{0x11, 16 * 1024},
+	{0x12, 16 * 1024},
+	{0x13, 16 * 1024},
+	{0x14, 64 * 1024},
+	{0x15, 128 * 1024},
+	{0x16, 128 * 1024},
+	{0x17, 128 * 1024},
+	{0x18, 128 * 1024},
+	{0x19, 128 * 1024},
+	{0x1a, 128 * 1024},
+	{0x1b, 128 * 1024},
+};
+
+/* F4标准时钟定义 */
+static const struct rcc_clock_scale clock_setup = {
+	.pllm = OSC_FREQ,
+	.plln = 336,
+	.pllp = 2,
+	.pllq = 7,
+#if defined(STM32F446) || defined(STM32F469)
+	.pllr = 2,
+#endif
+	.hpre = RCC_CFGR_HPRE_DIV_NONE,
+	.ppre1 = RCC_CFGR_PPRE_DIV_4,
+	.ppre2 = RCC_CFGR_PPRE_DIV_2,
+	.power_save = 0,
+	.flash_config = FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_5WS,
+	.apb1_frequency = 42000000,
+	.apb2_frequency = 84000000,
 };
 
 /** 
@@ -92,41 +143,38 @@ struct boardinfo board_info =
 static void board_init(void)
 {
     /* 初始化指示灯 */
-    rcc_peripheral_enable_clock(&BOARD_CLOCK_LED_ACTIVITY_REGISTER, BOARD_CLOCK_LED_ACTIVITY);
-	gpio_mode_setup(BOARD_PORT_LED_ACTIVITY, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, BOARD_PIN_LED_ACTIVITY);
+    rcc_peripheral_enable_clock(&RCC_AHB1ENR, BOARD_CLOCK_LED_ACTIVITY);
+    gpio_mode_setup(BOARD_PORT_LED_ACTIVITY, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, BOARD_PIN_LED_ACTIVITY);
 	gpio_set_output_options(BOARD_PORT_LED_ACTIVITY, GPIO_OTYPE_PP, GPIO_OSPEED_2MHZ, BOARD_PIN_LED_ACTIVITY);
+    BOARD_LED_ON(BOARD_PORT_LED_ACTIVITY, BOARD_PIN_LED_ACTIVITY);
 
-	
-
-:wq
-
-
-	gpio_set_mode(BOARD_PORT_LED_ACTIVITY, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, BOARD_PIN_LED_ACTIVITY);
-	BOARD_LED_ON(BOARD_PORT_LED_ACTIVITY, BOARD_PIN_LED_ACTIVITY);
-
-    rcc_peripheral_enable_clock(&BOARD_CLOCK_LED_BOOTLOADER_REGISTER, BOARD_CLOCK_LED_BOOTLOADER);
-	gpio_set_mode(BOARD_PORT_LED_BOOTLOADER, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, BOARD_PIN_LED_BOOTLOADER);
+    rcc_peripheral_enable_clock(&RCC_AHB1ENR, BOARD_CLOCK_LED_BOOTLOADER);
+    gpio_mode_setup(BOARD_PORT_LED_BOOTLOADER, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, BOARD_PIN_LED_BOOTLOADER);
+    gpio_set_output_options(BOARD_PORT_LED_BOOTLOADER, GPIO_OTYPE_PP, GPIO_OSPEED_2MHZ, BOARD_PIN_LED_BOOTLOADER);
 	BOARD_LED_ON(BOARD_PORT_LED_BOOTLOADER, BOARD_PIN_LED_BOOTLOADER);
 
     /* 如果强制进入bootloader引脚被定义,初始化该引脚 */
 #ifdef BOARD_FORCE_BL_PIN
 	rcc_peripheral_enable_clock(&BOARD_FORCE_BL_CLOCK_REGISTER, BOARD_FORCE_BL_CLOCK_BIT);
-	gpio_set_mode(BOARD_FORCE_BL_PORT, GPIO_MODE_INPUT, BOARD_FORCE_BL_PULL, BOARD_FORCE_BL_PIN);
-    
-#if(BOARD_FORCE_BL_PULL == 1)
-	gpio_set(BOARD_FORCE_BL_PORT, BOARD_FORCE_BL_PIN);
-#else
-    gpio_clear(BOARD_FORCE_BL_PORT, BOARD_FORCE_BL_PIN);
-#endif
-
+	gpio_mode_setup(BOARD_FORCE_BL_PORT, GPIO_MODE_INPUT, BOARD_FORCE_BL_PULL, BOARD_FORCE_BL_PIN);
 #endif
 
     /* 如果串口开启,初始化串口 */
 #ifdef INTERFACE_USART
 	rcc_peripheral_enable_clock(&BOARD_USART_PIN_CLOCK_REGISTER, BOARD_USART_PIN_CLOCK_BIT);
-	gpio_set_mode(BOARD_PORT_USART,	GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, BOARD_PIN_TX);
+	gpio_mode_setup(BOARD_PORT_USART, GPIO_MODE_AF, GPIO_PUPD_PULLUP, BOARD_PIN_TX | BOARD_PIN_RX);
+	gpio_set_af(BOARD_PORT_USART, BOARD_PORT_USART_AF, BOARD_PIN_TX);
+	gpio_set_af(BOARD_PORT_USART, BOARD_PORT_USART_AF, BOARD_PIN_RX);
 	rcc_peripheral_enable_clock(&BOARD_USART_CLOCK_REGISTER, BOARD_USART_CLOCK_BIT);
 #endif
+
+#if INTERFACE_USB
+    rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPBEN);
+#endif
+
+    /* 使能电源管理器时钟 */
+    rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_PWREN);
+
 }
 
 /** 
@@ -136,21 +184,24 @@ static void board_init(void)
   */
 void board_deinit(void)
 {
-    gpio_set_mode(BOARD_PORT_LED_ACTIVITY, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, BOARD_PIN_LED_ACTIVITY);
-    gpio_set_mode(BOARD_PORT_LED_BOOTLOADER, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, BOARD_PIN_LED_BOOTLOADER);
+    gpio_mode_setup(BOARD_PORT_LED_ACTIVITY, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BOARD_PIN_LED_ACTIVITY);
+    gpio_mode_setup(BOARD_PORT_LED_BOOTLOADER, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BOARD_PIN_LED_BOOTLOADER);
 
 #ifdef BOARD_FORCE_BL_PIN
-	gpio_set_mode(BOARD_FORCE_BL_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, BOARD_FORCE_BL_PIN);
+    gpio_mode_setup(BOARD_FORCE_BL_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BOARD_FORCE_BL_PIN);
 	gpio_clear(BOARD_FORCE_BL_PORT, BOARD_FORCE_BL_PIN);
 #endif
 
 #ifdef INTERFACE_USART
-	gpio_set_mode(BOARD_PORT_USART,	GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, BOARD_PIN_TX);
+    gpio_mode_setup(BOARD_PORT_USART, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BOARD_PIN_TX | BOARD_PIN_RX);
 	rcc_peripheral_disable_clock(&BOARD_USART_CLOCK_REGISTER, BOARD_USART_CLOCK_BIT);
 #endif
 
-	/* 复位APB2总线时钟 */
-	RCC_APB2ENR = 0x00000000;
+	/* disable the power controller clock */
+    rcc_peripheral_disable_clock(&RCC_APB1ENR, RCC_APB1ENR_PWREN);
+
+    /* 关闭AHB外设时钟 */
+	RCC_AHB1ENR = 0x00100000; // XXX Magic reset number from STM32F4x reference manual
 }
 
 /** 
@@ -160,7 +211,36 @@ void board_deinit(void)
   */
 static inline void clock_init(void)
 {
-	rcc_clock_setup_in_hsi_out_48mhz();
+	rcc_clock_setup_hse_3v3(&clock_setup);
+}
+
+/** 
+  * @brief  时钟反初始化
+  * @param  none
+  * @return none
+  */
+void clock_deinit(void)
+{
+	/* Enable internal high-speed oscillator. */
+	rcc_osc_on(RCC_HSI);
+	rcc_wait_for_osc_ready(RCC_HSI);
+
+	/* Reset the RCC_CFGR register */
+	RCC_CFGR = 0x000000;
+
+	/* Stop the HSE, CSS, PLL, PLLI2S, PLLSAI */
+	rcc_osc_off(RCC_HSE);
+	rcc_osc_off(RCC_PLL);
+	rcc_css_disable();
+
+	/* Reset the RCC_PLLCFGR register */
+	RCC_PLLCFGR = 0x24003010; // XXX Magic reset number from STM32F4xx reference manual
+
+	/* Reset the HSEBYP bit */
+	rcc_osc_bypass_disable(RCC_HSE);
+
+	/* Reset the CIR register */
+	RCC_CIR = 0x000000;
 }
 
 /** 
@@ -261,42 +341,17 @@ static bool board_test_usart_receiving_break(void)
 #endif
 
 /** 
-  * @brief  时钟反初始化
-  * @param  none
-  * @return none
-  */
-void clock_deinit(void)
-{
-	/* Enable internal high-speed oscillator. */
-	rcc_osc_on(RCC_HSI);
-	rcc_wait_for_osc_ready(RCC_HSI);
-
-	/* Reset the RCC_CFGR register */
-	RCC_CFGR = 0x000000;
-
-	/* Stop the HSE, CSS, PLL, PLLI2S, PLLSAI */
-	rcc_osc_off(RCC_HSE);
-	rcc_osc_off(RCC_PLL);
-	rcc_css_disable();
-
-	/* Reset the HSEBYP bit */
-	rcc_osc_bypass_disable(RCC_HSE);
-
-	/* Reset the CIR register */
-	RCC_CIR = 0x000000;
-}
-
-/** 
   * @brief  读取flash sector大小
   * @param  sector, 块编号
   * @return 0,不存在;!0,sector大小
   */
 uint32_t flash_func_sector_size(unsigned sector)
 {
-	if (sector < (BOARD_PAGES - BOOTLOADER_PAGE))
-	{
-		return FLASH_PAGE_SIZE;
+	if (sector < BOARD_FLASH_SECTORS) 
+    {
+		return flash_sectors[sector].size;
 	}
+
 	return 0;
 }
 
@@ -307,9 +362,37 @@ uint32_t flash_func_sector_size(unsigned sector)
   */
 void flash_func_erase_sector(unsigned sector)
 {
-	if (sector < BOARD_PAGES)
-	{
-		flash_erase_page(APP_LOAD_ADDRESS + (sector * FLASH_PAGE_SIZE));
+	if (sector >= BOARD_FLASH_SECTORS || sector < BOOTLOADER_SECTOR)
+    {
+		return;
+	}
+
+	/* 计算sector的实际物理地址
+	 * flash_func_read_word 已经加上了 APP_LOAD_ADDRESS
+	 */
+	uint32_t address = 0;
+
+	for (unsigned i = BOOTLOADER_SECTOR; i < sector; i++) 
+    {
+		address += flash_func_sector_size(i);
+	}
+
+	/* 查空sector */
+	unsigned size = flash_func_sector_size(sector);
+	bool blank = true;
+
+	for (unsigned i = 0; i < size; i += sizeof(uint32_t)) 
+    {
+		if (flash_func_read_word(address + i) != 0xffffffff) 
+        {
+			blank = false;
+			break;
+		}
+	}
+
+	/* 如果查空失败，则擦除该sector */
+	if (!blank) {
+		flash_erase_sector(flash_sectors[sector].sector_number, FLASH_CR_PROGRAM_X32);
 	}
 }
 
@@ -403,6 +486,10 @@ void led_toggle(unsigned led)
 		}
 }
 
+#ifndef SCB_CPACR
+# define SCB_CPACR (*((volatile uint32_t *) (((0xE000E000UL) + 0x0D00UL) + 0x088)))
+#endif
+
 /** 
   * @brief  main函数
   * @param  none
@@ -415,6 +502,9 @@ int main(void)
     
     /* 如果该值非零则会在此时间后退出 bootloader */    
     unsigned timeout = BOOTLOADER_DELAY;  
+
+    /* Enable the FPU before we hit any FP instructions */
+	SCB_CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2)); /* set CP10 Full Access and set CP11 Full Access */
 
 	/* 板级初始化 */
 	board_init();

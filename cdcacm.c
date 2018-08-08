@@ -305,8 +305,8 @@ usb_cinit(void)
 {
 #if defined(STM32F4)
 
-	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPAEN);
-	rcc_peripheral_enable_clock(&RCC_AHB2ENR, RCC_AHB2ENR_OTGFSEN);
+	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPBEN);
+	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1LPENR_OTGHSLPEN);
 
 #if defined(USB_FORCE_DISCONNECT)
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_OTYPE_OD, GPIO12);
@@ -321,10 +321,10 @@ usb_cinit(void)
 	systick_interrupt_disable();
 	systick_counter_disable(); // Stop the timer
 #endif
-	/* Configure to use the Alternate IO Functions USB DP,DM */
+	/* Configure USB DP,DM */
 
-	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO11 | GPIO12);
-	gpio_set_af(GPIOA, GPIO_AF10, GPIO11 | GPIO12);
+	gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO14 | GPIO15);
+	gpio_set_af(GPIOB, GPIO_AF12, GPIO14 | GPIO15);
 
 #if defined(BOARD_USB_VBUS_SENSE_DISABLED)
 	OTG_FS_GCCFG |= OTG_GCCFG_NOVBUSSENS;
