@@ -46,7 +46,6 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/pwr.h>
 
 #include <libopencm3/cm3/systick.h>
 
@@ -168,13 +167,6 @@ static void board_init(void)
 	rcc_peripheral_enable_clock(&BOARD_USART_CLOCK_REGISTER, BOARD_USART_CLOCK_BIT);
 #endif
 
-#if INTERFACE_USB
-    rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPBEN);
-#endif
-
-    /* 使能电源管理器时钟 */
-    rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_PWREN);
-
 }
 
 /** 
@@ -196,9 +188,6 @@ void board_deinit(void)
     gpio_mode_setup(BOARD_PORT_USART, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BOARD_PIN_TX | BOARD_PIN_RX);
 	rcc_peripheral_disable_clock(&BOARD_USART_CLOCK_REGISTER, BOARD_USART_CLOCK_BIT);
 #endif
-
-	/* disable the power controller clock */
-    rcc_peripheral_disable_clock(&RCC_APB1ENR, RCC_APB1ENR_PWREN);
 
     /* 关闭AHB外设时钟 */
 	RCC_AHB1ENR = 0x00100000; // XXX Magic reset number from STM32F4x reference manual

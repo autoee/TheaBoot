@@ -17,7 +17,4 @@ build/STM32F103_WARSHIP_V2_0/main_f1.o: main_f1.c hw_config.h \
  libopencm3/include/libopencm3/stm32/f1/usart.h \
  libopencm3/include/libopencm3/stm32/common/usart_common_f124.h \
  libopencm3/include/libopencm3/stm32/common/usart_common_all.h \
- libopencm3/include/libopencm3/stm32/pwr.h \
- libopencm3/include/libopencm3/stm32/f1/pwr.h \
- libopencm3/include/libopencm3/stm32/common/pwr_common_v1.h \
  libopencm3/include/libopencm3/cm3/systick.h bl.h

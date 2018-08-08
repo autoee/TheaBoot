@@ -21,7 +21,4 @@ build/STM32F429_DISCO/main_f4.o: main_f4.c hw_config.h \
  libopencm3/include/libopencm3/stm32/common/usart_common_f24.h \
  libopencm3/include/libopencm3/stm32/common/usart_common_f124.h \
  libopencm3/include/libopencm3/stm32/common/usart_common_all.h \
- libopencm3/include/libopencm3/stm32/pwr.h \
- libopencm3/include/libopencm3/stm32/f4/pwr.h \
- libopencm3/include/libopencm3/stm32/common/pwr_common_v1.h \
  libopencm3/include/libopencm3/cm3/systick.h bl.h

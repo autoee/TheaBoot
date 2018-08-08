@@ -292,37 +292,29 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
 }
 
 
-void
-otg_fs_isr(void)
+void otg_fs_isr(void)
 {
 	if (usbd_dev) {
 		usbd_poll(usbd_dev);
 	}
 }
 
-void
-usb_cinit(void)
+void otg_hs_isr(void)
+{
+	if (usbd_dev) {
+		usbd_poll(usbd_dev);
+	}
+}
+
+
+void usb_cinit(void)
 {
 #if defined(STM32F4)
 
 	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_IOPBEN);
-	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1LPENR_OTGHSLPEN);
+	rcc_peripheral_enable_clock(&RCC_AHB1ENR, RCC_AHB1ENR_OTGHSEN);
 
-#if defined(USB_FORCE_DISCONNECT)
-	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_OTYPE_OD, GPIO12);
-	gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, GPIO12);
-	gpio_clear(GPIOA, GPIO12);
-	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
-	systick_set_reload(board_info.systick_mhz * 1000);	/* 1ms tick, magic number */
-	systick_interrupt_enable();
-	systick_counter_enable();
-	/* Spec is 2-2.5 uS */
-	delay(1);
-	systick_interrupt_disable();
-	systick_counter_disable(); // Stop the timer
-#endif
 	/* Configure USB DP,DM */
-
 	gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO14 | GPIO15);
 	gpio_set_af(GPIOB, GPIO_AF12, GPIO14 | GPIO15);
 
@@ -330,7 +322,7 @@ usb_cinit(void)
 	OTG_FS_GCCFG |= OTG_GCCFG_NOVBUSSENS;
 #endif
 
-	usbd_dev = usbd_init(&otgfs_usb_driver, &dev, &config, usb_strings, NUM_USB_STRINGS,
+	usbd_dev = usbd_init(&otghs_usb_driver, &dev, &config, usb_strings, NUM_USB_STRINGS,
 			     usbd_control_buffer, sizeof(usbd_control_buffer));
 
 #elif defined(STM32F1)
@@ -353,7 +345,7 @@ usb_cinit(void)
 		OTG_FS_DCTL &= ~OTG_DCTL_SDIS;
 	}
 
-	nvic_enable_irq(NVIC_OTG_FS_IRQ);
+	nvic_enable_irq(NVIC_OTG_HS_IRQ);
 #endif
 }
 
@@ -371,7 +363,7 @@ usb_cfini(void)
 
 #if defined(STM32F4)
 	/* Reset the USB pins to being floating inputs */
-	gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO11 | GPIO12);
+	gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO14 | GPIO15);
 
 	/* Disable the OTGFS peripheral clock */
 	rcc_peripheral_disable_clock(&RCC_AHB2ENR, RCC_AHB2ENR_OTGFSEN);

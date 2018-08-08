@@ -46,7 +46,6 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/pwr.h>
 
 #include <libopencm3/cm3/systick.h>
 
