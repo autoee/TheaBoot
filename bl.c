@@ -62,8 +62,8 @@
   **/
 #define BL_PROTOCOL_VERSION 		"0.1.1.0"     	/*!< 当前协议版本 */
 
-#define PROTO_INSYNC				0x12            /*!< 帧头同步标志 */
-#define PROTO_EOC					0x84            /*!< 帧结束标志 */
+#define PROTO_INSYNC				0x11            /*!< The month of her birthday */
+#define PROTO_EOC					0x25            /*!< The day of her birthday */
 #define PROTO_PROG_MULTI_MAX        256	            /*!< 最大单次烧写数据长度,单位:byte */
 #define PROTO_REPLY_MAX             256	            /*!< 最大返回数据长度,单位:byte */
 
